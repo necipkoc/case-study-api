@@ -15,17 +15,15 @@ Laravel tabanlı modern E-ticaret REST API'si. Kullanıcı yönetimi, ürün kat
 
 ## Gereksinimler
 
-- PHP 8.1+
-- Composer
 - Docker & Docker Compose
-- PostgreSQL 15
+- Git
 
-## 🛠️ Kurulum
+## 🚀 Hızlı Başlangıç
 
 ### 1. Projeyi İndirin
 ```bash  
-git clone https://github.com/necipkoc/case-study-api
-cd ecommerce-api
+git clone https://github.com/necipkoc/case-study-api.git  
+cd case-study-api
 ```
 
 ### 2. Environment Ayarları
@@ -36,17 +34,17 @@ cp .env.example .env
 **.env dosyasını düzenleyin:**
 ```bash  
 DB_CONNECTION=pgsql
-DB_HOST=postgres
+DB_HOST=db
 DB_PORT=5432
 DB_DATABASE=ecommerce
-DB_USERNAME=user
-DB_PASSWORD=password
+DB_USERNAME=ecommerce_user
+DB_PASSWORD=ecommerce_pass
 
 JWT_SECRET=your_jwt_secret_key
 ```
 ### 3. Docker ile Başlatın
 ```bash  
-# Container'ları başlat
+# Container'ları başlat (database otomatik yüklenecek)
 docker-compose up -d
 
 # Bağımlılıkları yükle
@@ -58,13 +56,29 @@ docker-compose exec app php artisan key:generate
 # JWT secret oluştur
 docker-compose exec app php artisan jwt:secret
 
-# Veritabanını oluştur
-docker-compose exec app php artisan migrate
+# İzinleri ayarla
+docker-compose exec app chown -R www-data:www-data /var/www/html/storage
+docker-compose exec app chmod -R 755 /var/www/html/storage
 ```
 
 ### 4. Test Edin
 ```bash  
 curl http://localhost:8000/api/categories
+```
+
+## Hazır Test Verileri
+**Database otomatik yüklendiğinde şu veriler gelir:**
+```bash  
+- Admin kullanıcı: admin@example.com / password
+- Test kategorileri: Elektronik, Giyim, Kitap
+- Test ürünleri: Laptop, Telefon, Tişört vb.
+```
+
+## Servisler
+**Kurulum tamamlandığında şu servisler çalışır:**
+```bash  
+- API: http://localhost:8000
+- PostgreSQL: localhost:5432
 ```
 
 ## API Dökümantasyonu
@@ -284,27 +298,14 @@ Authorization: Bearer YOUR_TOKEN
 
 ## Veritabanı
 
-### Tablolar
+### Database Schema
 
 ```bash
-users
-id, name, email, password, created_at, updated_at
-
-categories
-id, name, description, created_at, updated_at
-
-products
-id, category_id, name, description, price, stock_quantity, created_at, updated_at
-
-carts
-id, user_id, created_at, updated_at
-
-cart_items
-id, cart_id, product_id, quantity, created_at, updated_at
-
-orders
-id, user_id, total_amount, status, created_at, updated_at
-
-order_items
-id, order_id, product_id, quantity, price, created_at, updated_at
+users: id, name, email, password, role, timestamps
+categories: id, name, description, timestamps  
+products: id, category_id, name, description, price, stock_quantity, timestamps
+carts: id, user_id, timestamps
+cart_items: id, cart_id, product_id, quantity, timestamps
+orders: id, user_id, total_amount, status, timestamps
+order_items: id, order_id, product_id, quantity, price, timestamps
 ```
