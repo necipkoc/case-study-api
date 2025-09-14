@@ -1,0 +1,835 @@
+{
+    "info": {
+        "_postman_id": "case-study-api-collection",
+        "name": "Case Study API Collection",
+        "description": "Kapsamlı E-Ticaret Platformu API Test Koleksiyonu\n\n🏪 **Case Study API v1.0**\n\nBu koleksiyon e-ticaret platformunun tüm endpoint'lerini test etmenizi sağlar.\n\n## 📋 Test Sırası\n1. **Authentication** - Kayıt ol ve giriş yap\n2. **Categories** - Kategorileri listele\n3. **Products** - Ürünleri listele ve detay gör\n4. **Cart Operations** - Sepet işlemleri\n5. **Order Management** - Sipariş oluştur ve yönet\n6. **Admin Operations** - Kategori ve ürün yönetimi\n\n## 🔐 Authentication\n- JWT Bearer Token kullanılır\n- Token otomatik olarak environment variable'a kaydedilir\n- Her korumalı endpoint için token gereklidir\n\n## 🌍 Environment Variables\n- `{{base_url}}` - API base URL (http://localhost:8000/api)\n- `{{token}}` - JWT authentication token\n- `{{user_id}}` - Giriş yapan kullanıcı ID'si",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Register - Kullanıcı Kaydı",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "// Response status kontrolü",
+                                    "pm.test(\"Status code is 201\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "// Response yapısı kontrolü",
+                                    "pm.test(\"Response has required fields\", function () {",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson).to.have.property('user');",
+                                    "    pm.expect(responseJson).to.have.property('token');",
+                                    "});",
+                                    "",
+                                    "// Token'ı environment variable'a kaydet",
+                                    "if (pm.response.code === 201) {",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.environment.set('token', responseJson.token);",
+                                    "    pm.environment.set('user_id', responseJson.user.id);",
+                                    "    console.log('✅ Token kaydedildi:', responseJson.token.substring(0, 20) + '...');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Test Kullanıcı\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "register"
+                            ]
+                        },
+                        "description": "Yeni kullanıcı kaydı oluşturur.\n\n**Gerekli Alanlar:**\n- name: Kullanıcı adı\n- email: E-posta adresi (benzersiz)\n- password: Şifre (min 8 karakter)\n- password_confirmation: Şifre doğrulaması\n\n**Response:**\n- user: Kullanıcı bilgileri\n- token: JWT authentication token"
+                    }
+                },
+                {
+                    "name": "Login - Kullanıcı Girişi",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Login successful\", function () {",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson).to.have.property('user');",
+                                    "    pm.expect(responseJson).to.have.property('token');",
+                                    "});",
+                                    "",
+                                    "// Token'ı güncelle",
+                                    "if (pm.response.code === 200) {",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.environment.set('token', responseJson.token);",
+                                    "    pm.environment.set('user_id', responseJson.user.id);",
+                                    "    console.log('✅ Giriş başarılı, token güncellendi');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "login"
+                            ]
+                        },
+                        "description": "Mevcut kullanıcı girişi.\n\n**Gerekli Alanlar:**\n- email: Kayıtlı e-posta adresi\n- password: Kullanıcı şifresi"
+                    }
+                },
+                {
+                    "name": "Profile - Profil Görüntüle",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Profile data exists\", function () {",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson).to.have.property('id');",
+                                    "    pm.expect(responseJson).to.have.property('name');",
+                                    "    pm.expect(responseJson).to.have.property('email');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/profile",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "profile"
+                            ]
+                        },
+                        "description": "Giriş yapan kullanıcının profil bilgilerini görüntüler.\n\n**Authorization:** Bearer Token gerekli"
+                    }
+                },
+                {
+                    "name": "Logout - Çıkış Yap",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "logout"
+                            ]
+                        },
+                        "description": "Kullanıcıyı sistemden çıkarır ve token'ı geçersiz kılar."
+                    }
+                }
+            ],
+            "description": "Kullanıcı kimlik doğrulama işlemleri"
+        },
+        {
+            "name": "Categories",
+            "item": [
+                {
+                    "name": "List Categories - Kategorileri Listele",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Categories list exists\", function () {",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson).to.be.an('array');",
+                                    "});",
+                                    "",
+                                    "// İlk kategori ID'sini kaydet",
+                                    "if (pm.response.json().length > 0) {",
+                                    "    pm.environment.set('category_id', pm.response.json()[0].id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/categories",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "categories"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Tüm kategorileri listeler. Bu endpoint herkese açıktır.\n\n**Query Parameters:**\n- search (opsiyonel): Kategori adında arama"
+                    }
+                },
+                {
+                    "name": "Create Category - Kategori Oluştur",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 201\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "// Oluşturulan kategori ID'sini kaydet",
+                                    "if (pm.response.code === 201) {",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.environment.set('new_category_id', responseJson.id);",
+                                    "    console.log('✅ Yeni kategori oluşturuldu, ID:', responseJson.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Test Kategori\",\n    \"description\": \"API testi için oluşturulan kategori\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/categories",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "categories"
+                            ]
+                        },
+                        "description": "Yeni kategori oluşturur.\n\n**Authorization:** Bearer Token gerekli\n**Gerekli Alanlar:**\n- name: Kategori adı (benzersiz)\n- description: Kategori açıklaması (opsiyonel)"
+                    }
+                }
+            ],
+            "description": "Kategori yönetimi işlemleri"
+        },
+        {
+            "name": "Products",
+            "item": [
+                {
+                    "name": "List Products - Ürünleri Listele",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "// İlk ürün ID'sini kaydet",
+                                    "const responseJson = pm.response.json();",
+                                    "if (responseJson.data && responseJson.data.length > 0) {",
+                                    "    pm.environment.set('product_id', responseJson.data[0].id);",
+                                    "    console.log('✅ İlk ürün ID kaydedildi:', responseJson.data[0].id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/products?page=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "category_id",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "min_price",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "max_price",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Tüm ürünleri sayfalı olarak listeler.\n\n**Query Parameters:**\n- page: Sayfa numarası\n- category_id: Kategori filtreleme\n- search: Ürün adında arama\n- min_price: Minimum fiyat\n- max_price: Maksimum fiyat"
+                    }
+                },
+                {
+                    "name": "Product Detail - Ürün Detayı",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/products/{{product_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "products",
+                                "{{product_id}}"
+                            ]
+                        },
+                        "description": "Belirli bir ürünün detaylarını görüntüler.\n\n**URL Parameters:**\n- id: Ürün ID'si"
+                    }
+                },
+                {
+                    "name": "Create Product - Ürün Oluştur",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.environment.set('new_product_id', responseJson.id);",
+                                    "    console.log('Yeni ürün oluşturuldu, ID:', responseJson.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Test Ürün\",\n    \"description\": \"API testi için oluşturulan ürün\",\n    \"price\": 99.99,\n    \"stock_quantity\": 50,\n    \"category_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/products",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "products"
+                            ]
+                        },
+                        "description": "Yeni ürün oluşturur.\n\n**Authorization:** Bearer Token gerekli\n**Gerekli Alanlar:**\n- name: Ürün adı\n- price: Ürün fiyatı\n- stock_quantity: Stok miktarı\n- category_id: Kategori ID'si"
+                    }
+                }
+            ],
+            "description": "Ürün yönetimi işlemleri"
+        },
+        {
+            "name": "Cart Operations",
+            "item": [
+                {
+                    "name": "View Cart - Sepeti Görüntüle",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Cart structure is correct\", function () {",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson).to.have.property('items');",
+                                    "    pm.expect(responseJson).to.have.property('total_price');",
+                                    "    pm.expect(responseJson).to.have.property('total_items');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/cart",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "cart"
+                            ]
+                        },
+                        "description": "Kullanıcının sepet içeriğini görüntüler."
+                    }
+                },
+                {
+                    "name": "Add to Cart - Sepete Ekle",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Product added to cart\", function () {",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson.message).to.include('sepete eklendi');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"product_id\": {{product_id}},\n    \"quantity\": 2\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/cart/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "cart",
+                                "add"
+                            ]
+                        },
+                        "description": "Sepete ürün ekler.\n\n**Gerekli Alanlar:**\n- product_id: Eklenecek ürün ID'si\n- quantity: Eklenecek miktar"
+                    }
+                },
+                {
+                    "name": "Update Cart - Sepet Güncelle",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"product_id\": {{product_id}},\n    \"quantity\": 3\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/cart/update",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "cart",
+                                "update"
+                            ]
+                        },
+                        "description": "Sepetteki ürün miktarını günceller."
+                    }
+                },
+                {
+                    "name": "Remove from Cart - Sepetten Kaldır",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/cart/remove/{{product_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "cart",
+                                "remove",
+                                "{{product_id}}"
+                            ]
+                        },
+                        "description": "Belirli ürünü sepetten kaldırır."
+                    }
+                },
+                {
+                    "name": "Clear Cart - Sepeti Temizle",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/cart/clear",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "cart",
+                                "clear"
+                            ]
+                        },
+                        "description": "Sepeti tamamen temizler."
+                    }
+                }
+            ],
+            "description": "Sepet yönetimi işlemleri"
+        },
+        {
+            "name": "Orders",
+            "item": [
+                {
+                    "name": "Create Order - Sipariş Oluştur",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 201\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 201) {",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.environment.set('order_id', responseJson.id);",
+                                    "    console.log('✅ Sipariş oluşturuldu, ID:', responseJson.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/orders",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders"
+                            ]
+                        },
+                        "description": "Sepetteki ürünlerden yeni sipariş oluşturur.\n\n**Not:** Sepet otomatik olarak temizlenir."
+                    }
+                },
+                {
+                    "name": "List Orders - Siparişleri Listele",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/orders?page=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Kullanıcının siparişlerini listeler.\n\n**Query Parameters:**\n- page: Sayfa numarası\n- status: Sipariş durumu filtresi"
+                    }
+                },
+                {
+                    "name": "Order Detail - Sipariş Detayı",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/orders/{{order_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "{{order_id}}"
+                            ]
+                        },
+                        "description": "Belirli siparişin detaylarını görüntüler."
+                    }
+                },
+                {
+                    "name": "Order Stats - Sipariş İstatistikleri",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/orders-stats",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders-stats"
+                            ]
+                        },
+                        "description": "Kullanıcının sipariş istatistiklerini görüntüler."
+                    }
+                }
+            ],
+            "description": "Sipariş yönetimi işlemleri"
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Global pre-request script",
+                    "console.log('API Request:', pm.request.method, pm.request.url);"
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Global test script",
+                    "console.log('Response Status:', pm.response.code, pm.response.status);",
+                    "console.log('Response Time:', pm.response.responseTime + 'ms');",
+                    "",
+                    "// JSON format kontrolü",
+                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
+                    "    pm.test('Response is JSON', function() {",
+                    "        pm.response.to.be.json;",
+                    "    });",
+                    "}"
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000/api",
+            "type": "string"
+        }
+    ]
+}
